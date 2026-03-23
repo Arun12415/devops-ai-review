@@ -1,4 +1,5 @@
 import os
+import traceback
 from openai import OpenAI
 
 # ✅ Validate API key
@@ -44,16 +45,18 @@ Code:
 
         return response.choices[0].message.content
 
-    except Exception as e:
-        print(f"❌ Error during AI review: {str(e)}")
+    except Exception:
+        print("❌ Error during AI review:")
+        traceback.print_exc()
+
         with open("review.txt", "w") as f:
-            f.write(f"Error: {str(e)}")
+            f.write("Error occurred during AI review")
+
         exit(1)
 
 
 if __name__ == "__main__":
 
-    # ✅ Check diff file exists
     if not os.path.exists("diff.txt"):
         print("❌ diff.txt not found")
         exit(1)
@@ -61,26 +64,25 @@ if __name__ == "__main__":
     with open("diff.txt", "r") as f:
         diff = f.read()
 
-    # ✅ Handle empty diff
     if not diff.strip():
         print("⚠️ No changes found in diff")
         exit(0)
 
-    # ✅ Limit size safely
+    print(f"Diff size: {len(diff)} characters")
+
     MAX_LENGTH = 5000
     if len(diff) > MAX_LENGTH:
         diff = diff[:MAX_LENGTH] + "\n... (truncated)"
 
     review = review_code(diff)
 
-    print("=== AI REVIEW ===")
+    print("\n===== AI REVIEW START =====\n")
     print(review)
+    print("\n===== AI REVIEW END =====\n")
 
-    # ✅ Save output
     with open("review.txt", "w") as f:
         f.write(review)
 
-    # 🚨 Better severity detection
     if any(word in review.lower() for word in ["critical", "high severity", "severe"]):
         print("❌ Critical issue detected. Failing pipeline...")
         exit(1)
