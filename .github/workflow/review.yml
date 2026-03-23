@@ -14,8 +14,8 @@ jobs:
 
     - name: Get PR diff
       run: |
-        git fetch origin ${{ github.base_ref }}
-        git diff origin/${{ github.base_ref }}...HEAD > diff.txt
+        git fetch origin main
+        git diff origin/main > diff.txt
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -35,7 +35,12 @@ jobs:
       with:
         script: |
           const fs = require('fs');
-          const review = fs.readFileSync('review.txt', 'utf8');
+
+          let review = "⚠️ No review generated";
+
+          if (fs.existsSync('review.txt')) {
+            review = fs.readFileSync('review.txt', 'utf8');
+          }
 
           github.rest.issues.createComment({
             issue_number: context.issue.number,
