@@ -86,3 +86,4 @@ if __name__ == "__main__":
     if any(word in review.lower() for word in ["critical", "high severity", "severe"]):
         print("❌ Critical issue detected. Failing pipeline...")
         exit(1)
+        # final trigger 

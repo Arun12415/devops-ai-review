@@ -1,0 +1,86 @@
+diff --git a/.github/workflow/review.yml b/.github/workflow/review.yml
+new file mode 100644
+index 0000000..5355c33
+--- /dev/null
++++ b/.github/workflow/review.yml
+@@ -0,0 +1,50 @@
++name: AI DevOps Review
++
++on:
++  pull_request:
++    types: [opened, synchronize]
++
++jobs:
++  ai-review:
++    runs-on: ubuntu-latest
++
++    steps:
++    - name: Checkout code
++      uses: actions/checkout@v3
++
++    - name: Get PR diff
++      run: |
++        git fetch origin main
++        git diff origin/main > diff.txt
++
++    - name: Set up Python
++      uses: actions/setup-python@v4
++      with:
++        python-version: '3.9'
++
++    - name: Install dependencies
++      run: pip install openai
++
++    - name: Run AI review
++      env:
++        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
++      run: python scripts/ai_review.py
++
++    - name: Post PR comment
++      uses: actions/github-script@v6
++      with:
++        script: |
++          const fs = require('fs');
++
++          let review = "⚠️ No review generated";
++
++          if (fs.existsSync('review.txt')) {
++            review = fs.readFileSync('review.txt', 'utf8');
++          }
++
++          github.rest.issues.createComment({
++            issue_number: context.issue.number,
++            owner: context.repo.owner,
++            repo: context.repo.repo,
++            body: review
++          });
+\ No newline at end of file
+diff --git a/.github/workflows/review.yml b/.github/workflows/review.yml
+index c64fb21..5355c33 100644
+--- a/.github/workflows/review.yml
++++ b/.github/workflows/review.yml
+@@ -14,8 +14,8 @@ jobs:
+ 
+     - name: Get PR diff
+       run: |
+-        git fetch origin ${{ github.base_ref }}
+-        git diff origin/${{ github.base_ref }}...HEAD > diff.txt
++        git fetch origin main
++        git diff origin/main > diff.txt
+ 
+     - name: Set up Python
+       uses: actions/setup-python@v4
+@@ -35,7 +35,12 @@ jobs:
+       with:
+         script: |
+           const fs = require('fs');
+-          const review = fs.readFileSync('review.txt', 'utf8');
++
++          let review = "⚠️ No review generated";
++
++          if (fs.existsSync('review.txt')) {
++            review = fs.readFileSync('review.txt', 'utf8');
++          }
+ 
+           github.rest.issues.createComment({
+             issue_number: context.issue.number,
