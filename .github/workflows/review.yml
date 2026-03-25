@@ -15,7 +15,7 @@ jobs:
     - name: Get PR diff
       run: |
         git fetch origin main
-        git diff origin/main > diff.txt
+        git diff origin/main HEAD > diff.txt
 
     - name: Set up Python
       uses: actions/setup-python@v4
